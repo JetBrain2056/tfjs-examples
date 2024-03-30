@@ -1,5 +1,5 @@
-const URL      = "./model/";
-const imageURL = './images/1.png';
+//const URL      = "./model/";
+//const imageURL = './images/1.png';
 
 let model;
 
