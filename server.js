@@ -9,7 +9,6 @@ server.use(express.json());
 server.use(express.urlencoded({ extended: false }));
 
 server.use("/@tensorflow"       , express.static('./node_modules/@tensorflow')); 
-server.use("/@tensorflow-models", express.static('./node_modules/@tensorflow-models')); 
 
 //assuming app is express Object.
 server.get('/',function(req,res) {
