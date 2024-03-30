@@ -1,0 +1,23 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />    
+    <script defer src="./@tensorflow/tfjs/dist/tf.js"></script>
+    <script defer src="./mnist.js"></script>
+  </head>
+  <body>    
+    <div>Teachable Machine - Handwritten digit recognition model</div>
+    <h1 id="info">Waiting for training model.</h1>
+    <button type="button" id="train">Train</button>
+    <button type="button" id="run">Run</button>
+    <br>
+    <progress value="0" max="100" style="width:50%"></progress>
+    <br>
+    <div>  
+      <!-- <img id="image" /> -->
+      <canvas id="canvas" width="28" height="28" ></canvas>
+      <p id="prediction" style="font-size:30px">0</p>
+    </div>
+    <script src="index.js"></script>
+  </body>
+</html>
