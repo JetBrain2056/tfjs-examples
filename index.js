@@ -11,7 +11,7 @@ let image      = document.getElementById('image');
 // image.src = imageURL;
 
 const trainButton = document.getElementById('train');
-trainButton.onclick = async function() {
+trainButton.onclick = function() {
 
   //convert to tensor 
   //const bufferT   = tf.browser.fromPixels(image);
@@ -23,7 +23,7 @@ trainButton.onclick = async function() {
   const input  = tf.tensor2d(TRAINING_DATA.inputs);
   const output = tf.oneHot(tf.tensor1d(TRAINING_DATA.outputs, 'int32'), 10);
 
-  model = await tf.sequential();
+  model = tf.sequential();
     
   // model.add(tf.layers.conv2d({
   //   inputShape: [image.height, image.width, 3],
@@ -53,7 +53,7 @@ trainButton.onclick = async function() {
   // progress.style.display = 'block';
 
   const epochs = 50;
-  await model.fit(input, output, {
+  model.fit(input, output, {
     epochs          : epochs, 
     batchSize       : 512,     
     shuffle         : true,
@@ -66,23 +66,21 @@ trainButton.onclick = async function() {
   info.innerText = 'Model succesfully trained.';
   // progress.style.display = 'none';
 
-  // await model.save('./model/');
-
-  // await runPredict();
-
+  // model.save('./model/');
+  // runPredict();
 }
 
 const runButton = document.getElementById('run');
-runButton.onclick = async function runPredict() {
+runButton.onclick = function runPredict() {
   console.log("run predict...");
 
   i = Math.floor(Math.random() * TRAINING_DATA.inputs.length);
 
-  const testxs = await tf.tensor1d(TRAINING_DATA.inputs[i]).expandDims();
+  const testxs = tf.tensor1d(TRAINING_DATA.inputs[i]).expandDims();
   
   let output = [];
   try {          
-    output = await model.predict(testxs).data();     
+    output = model.predict(testxs).dataSync();     
     // console.log(output);     
   } catch (err) {
     console.log(err);
