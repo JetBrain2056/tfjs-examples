@@ -1,5 +1,5 @@
-//const URL      = "./model/";
-//const imageURL = './images/1.png';
+const URL      = "./model/";
+const imageURL = './images/1.png';
 
 let model;
 
@@ -79,16 +79,20 @@ runButton.onclick = async function runPredict() {
   i = Math.floor(Math.random() * TRAINING_DATA.inputs.length);
 
   const testxs = await tf.tensor1d(TRAINING_DATA.inputs[i]).expandDims();
+  
+  let output = [];
+  try {          
+    output = await model.predict(testxs).data();     
+    // console.log(output);     
+  } catch (err) {
+    console.log(err);
+  }    
 
-  let result = tf.tidy(() => {
-    data = model.predict(testxs);  
-    return data.argMax(-1);
-  })
-  result.array().then(number => {  
-    console.log('number', number);
-    prediction.innerText = number;
-    drawImage(TRAINING_DATA.inputs[i]);
-  })
+  arr    = Array.from(output);
+  number = arr.indexOf(Math.max(...arr));
+  // console.log('number', number);
+  prediction.innerText = number;
+  drawImage(TRAINING_DATA.inputs[i]);
 }
 
 function drawImage(digit) {
