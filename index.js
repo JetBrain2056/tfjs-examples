@@ -1,6 +1,5 @@
 const URL      = "./model/";
-const imageURL = './images/1.png';
-
+const imageURL = './images/6.jpg';
 let model;
 
 let info       = document.getElementById('info');
@@ -8,41 +7,54 @@ let prediction = document.getElementById('prediction');
 let progress   = document.querySelector('progress');
 let image      = document.getElementById('image');
 
-// image.src = imageURL;
+image.src = imageURL;
 
 const trainButton = document.getElementById('train');
-trainButton.onclick = function() {
+trainButton.onclick = async function() {
 
   //convert to tensor 
   //const bufferT   = tf.browser.fromPixels(image);
   // const expandedT = await tf.image.resizeBilinear(bufferT, [224, 224]);
   //const tensorImg = tf.cast(tf.expandDims(bufferT), 'int32');
 
-  //console.log(tensorImg);
 
   const input  = tf.tensor2d(TRAINING_DATA.inputs);
   const output = tf.oneHot(tf.tensor1d(TRAINING_DATA.outputs, 'int32'), 10);
 
   model = tf.sequential();
-    
+
   // model.add(tf.layers.conv2d({
-  //   inputShape: [image.height, image.width, 3],
-  //   kernelSize: 3,
+  //   inputShape: [IMAGE_WIDTH, IMAGE_HEIGHT, IMAGE_CHANNELS],
+  //   kernelSize: 5,
+  //   filters: 8,
+  //   strides: 1,
+  //   activation: 'relu',
+  //   kernelInitializer: 'varianceScaling'
+  // }));
+  // model.add(tf.layers.maxPooling2d({poolSize: [2, 2], strides: [2, 2]}));  
+  // model.add(tf.layers.conv2d({
+  //   kernelSize: 5,
   //   filters: 16,
-  //   activation: 'relu'
+  //   strides: 1,
+  //   activation: 'relu',
+  //   kernelInitializer: 'varianceScaling'
+  // }));
+  // model.add(tf.layers.maxPooling2d({poolSize: [2, 2], strides: [2, 2]}));  
+  // model.add(tf.layers.flatten());
+
+  // const NUM_OUTPUT_CLASSES = 10;
+  // model.add(tf.layers.dense({
+  //   units: NUM_OUTPUT_CLASSES,
+  //   kernelInitializer: 'varianceScaling',
+  //   activation: 'softmax'
   // }));
 
-  // model.add(tf.layers.maxPooling2d({poolSize: 2, strides: 2}));
-  // model.add(tf.layers.conv2d({kernelSize: 3, filters: 32, activation: 'relu'}));
-  // model.add(tf.layers.maxPooling2d({poolSize: 2, strides: 2}));
-  // model.add(tf.layers.conv2d({kernelSize: 3, filters: 32, activation: 'relu'}));
-  // model.add(tf.layers.flatten({}));
   model.add(tf.layers.dense({inputShape: [784], units: 64}));
   model.add(tf.layers.dense({units: 16}));
   model.add(tf.layers.dense({units: 10, activation:'softmax'}));
   
   model.compile({
-    optimizer: tf.train.adam(0.001),
+    optimizer: tf.train.adam(),
     loss: 'categoricalCrossentropy',
     metrics: ['accuracy'],
   });  
@@ -53,7 +65,7 @@ trainButton.onclick = function() {
   // progress.style.display = 'block';
 
   const epochs = 50;
-  model.fit(input, output, {
+  await model.fit(input, output, {
     epochs          : epochs, 
     batchSize       : 512,     
     shuffle         : true,
@@ -66,31 +78,53 @@ trainButton.onclick = function() {
   info.innerText = 'Model succesfully trained.';
   // progress.style.display = 'none';
 
-  // model.save('./model/');
-  // runPredict();
+}
+const saveButton = document.getElementById('save');
+saveButton.onclick = async function saveModel() {
+  console.log('SaveModel...');
+  
+  try {
+    await model.save('downloads://model');
+  } catch(err) {
+    console.log(err);
+  }
+  
 }
 
 const runButton = document.getElementById('run');
 runButton.onclick = function runPredict() {
   console.log("run predict...");
 
-  i = Math.floor(Math.random() * TRAINING_DATA.inputs.length);
+  console.log(TRAINING_DATA.inputs[8]);
+  console.log(TRAINING_DATA.outputs.length);
 
-  const testxs = tf.tensor1d(TRAINING_DATA.inputs[i]).expandDims();
-  
-  let output = [];
-  try {          
-    output = model.predict(testxs).dataSync();     
-    // console.log(output);     
-  } catch (err) {
-    console.log(err);
-  }    
+  // const outputD = tf.oneHot(tf.tensor1d(outputs, 'int32'), 10);
+  // console.log(outputD.dataSync());
+
+  const bufferT   = tf.browser.fromPixels(image);
+  const expandedT = tf.image.resizeBilinear(bufferT, [28, 28]);
+  const imageT    = tf.cast(tf.expandDims(expandedT), 'int32');
+  const newImageT = convertImage(imageT.dataSync());
+
+  console.log(imageT.dataSync()); 
+  console.log(newImageT);  
+
+  // i = Math.floor(Math.random() * TRAINING_DATA.inputs.length);
+  // const testxs = tf.tensor1d(TRAINING_DATA.inputs[i]).expandDims();
+
+  const testxs = tf.tensor1d(newImageT).expandDims();
+  // console.log(testxs);
+         
+  output = model.predict(testxs).dataSync();     
+  // output = model.detect(testxs).dataSync();  
 
   arr    = Array.from(output);
   number = arr.indexOf(Math.max(...arr));
-  // console.log('number', number);
+  console.log('number', number);
   prediction.innerText = number;
-  drawImage(TRAINING_DATA.inputs[i]);
+
+  // drawImage(TRAINING_DATA.inputs[i]);
+  drawImage(newImageT);
 }
 
 function drawImage(digit) {
@@ -103,6 +137,16 @@ function drawImage(digit) {
     imageData.data[i * 4 + 3] = 255;
   }
   context.putImageData(imageData, 0, 0);
+}
+function convertImage(imageData) {
+  let digit = [];
+  
+  for (let ii = 0; ii < 784; ii++) {
+    for (let i = 0; i < imageData.length; i++) {
+      digit[ii] = Math.ceil((255-imageData[ii*3])/255*100)/100;           
+    }
+  }
+  return digit;
 }
 
 async function test() {
